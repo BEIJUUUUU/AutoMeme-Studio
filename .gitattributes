@@ -1,0 +1,19 @@
+# 统一换行符，避免 Windows/Linux 协作时整文件 diff
+* text=auto eol=lf
+
+# 明确标记二进制，防止 git 尝试做文本转换
+*.onnx  binary
+*.wav   binary
+*.mp3   binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+
+# 自动识别语言，让 GitHub 正确统计
+*.py    text diff=python
+*.json  text
+*.md    text
+
+# 产生的文件不参与语言统计
+logs/**     linguist-generated
+models/**   linguist-vendored

@@ -1,0 +1,58 @@
+{
+  "api": {
+    "base_url": "https://api.deepseek.com/v1",
+    "api_key": "YOUR_API_KEY_HERE",
+    "model": "deepseek-chat",
+    "temperature": 0.4,
+    "billing_mode": "free",
+    "mode": "auto"
+  },
+
+  "vision_api": {
+    "vision_source": "main",
+    "base_url": "http://localhost:11434/v1",
+    "api_key": "ollama",
+    "model": "moondream",
+    "enable_auto_sampling": false,
+    "sampling_interval": 6,
+    "image_size": 384
+  },
+
+  "behavior": {
+    "cooldown_seconds": 8,
+    "context_window_seconds": 30,
+    "max_context_messages": 6,
+    "show_session_settlement": true,
+    "use_funnel": true,
+    "funnel_top_k": 5,
+    "enable_thinking": false,
+    "trigger_sensitivity": 50,
+    "funnel_engine": "keyword"
+  },
+
+  "embedding": {
+    "enabled": false,
+    "base_url": "http://localhost:11434/v1",
+    "api_key": "ollama",
+    "model": "nomic-embed-text",
+    "timeout": 8.0,
+    "local_fallback": false,
+    "min_score": 0.15
+  },
+
+  "audio": {
+    "volume": 0.5,
+    "voice_pack_dir": "../新三国语音包",
+    "mic_device_name": "",
+    "speaker_device_name": "",
+    "mic_gain": 3.5,
+    "speaker_gain": 1.5,
+    "enable_mic": true,
+    "enable_speaker": true,
+    "enable_emotion": false
+  },
+
+  "screen": {
+    "enable_screen_ocr": false
+  }
+}

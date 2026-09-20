@@ -13,7 +13,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from core import screen_watcher as _sw_mod
 from core.screen_watcher import ScreenWatcher
+
+# 无头环境（CI）缺少 mss/opencv 或显示服务时，start() 会直接返回不建线程。
+# 这类测试必须跳过，否则会把「正确的提前返回」误判为失败。
+_SCREEN_OK = _sw_mod._SCREEN_DEPS_OK
 
 
 def _count_extra_threads():
@@ -21,11 +26,18 @@ def _count_extra_threads():
     return max(0, threading.active_count() - 1)
 
 
+def _requires_screen():
+    import pytest
+    if not _SCREEN_OK:
+        pytest.skip("当前环境不支持屏幕采集（无头/缺依赖），跳过线程测试")
+
+
 class TestScreenWatcherThreads:
     """屏幕监视器的线程回收"""
 
     def test_stop_terminates_threads(self):
         """stop() 后两个采样线程都应退出"""
+        _requires_screen()
         base = _count_extra_threads()
         sw = ScreenWatcher(lambda x: None, lambda b: None)
         sw.start()
@@ -36,8 +48,17 @@ class TestScreenWatcherThreads:
         time.sleep(0.2)
         assert _count_extra_threads() <= base, "stop() 后不应有残留线程"
 
+    def test_start_is_noop_without_deps(self):
+        """依赖缺失时 start() 应安全地什么都不做，而不是抛异常"""
+        if _SCREEN_OK:
+            return  # 有依赖的环境不适用此用例
+        sw = ScreenWatcher(lambda x: None, lambda b: None)
+        sw.start()
+        sw.stop()   # 不应抛异常
+
     def test_stop_is_fast_even_with_long_interval(self):
         """即使抽帧间隔很长，stop() 也应立即返回（不等待整个间隔）"""
+        _requires_screen()
         sw = ScreenWatcher(lambda x: None, lambda b: None)
         sw.is_vlm_auto_enabled = True
         sw.vlm_sample_interval = 30.0   # 最坏情况：30 秒间隔
@@ -51,6 +72,7 @@ class TestScreenWatcherThreads:
 
     def test_restart_does_not_accumulate_threads(self):
         """反复启停不应累积线程（否则会重复占用设备）"""
+        _requires_screen()
         base = _count_extra_threads()
         sw = ScreenWatcher(lambda x: None, lambda b: None)
 
@@ -64,11 +86,13 @@ class TestScreenWatcherThreads:
 
     def test_double_start_is_idempotent(self):
         """重复 start() 不应创建多余线程"""
+        _requires_screen()
         base = _count_extra_threads()
         sw = ScreenWatcher(lambda x: None, lambda b: None)
         sw.start()
         time.sleep(0.2)
         after_first = _count_extra_threads()
+        assert after_first > base, "首次 start() 应创建线程"
 
         sw.start()   # 第二次应被 is_running 挡住
         time.sleep(0.2)
